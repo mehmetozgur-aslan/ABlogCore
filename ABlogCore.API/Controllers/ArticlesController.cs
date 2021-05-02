@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABlogCore.API.Models;
+using ABlogCore.API.Responses;
 
 namespace ABlogCore.API.Controllers
 {
@@ -25,6 +26,46 @@ namespace ABlogCore.API.Controllers
         public async Task<ActionResult<IEnumerable<Article>>> GetArticles()
         {
             return await _context.Articles.ToListAsync();
+        }
+
+        [HttpGet("{page}/{pageSize}")]
+        public IActionResult GetArticle(int page = 1, int pageSize = 5)
+        {
+            try
+            {
+                IQueryable<Article> query;
+
+                query = _context.Articles.Include(x => x.Category).Include(x => x.Comments).OrderByDescending(x => x.PublishDate);
+
+                int totalCount = query.Count();
+
+                var articlesResponse = query.Skip((pageSize * (page - 1))).Take(pageSize).ToList().Select(x => new ArticleResponse()
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    ContentMain = x.ContentMain,
+                    ContentSummary = x.ContentSummary,
+                    Picture = x.Picture,
+                    PublishDate=x.PublishDate,
+                    ViewCount = x.ViewCount,
+                    CommentCount = x.Comments.Count,
+                    Category = new CategoryResponse() { Id = x.Category.Id, Name = x.Category.Name }
+
+                });
+
+                var result = new
+                {
+                    TotalCount = totalCount,
+                    Articles = articlesResponse
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET: api/Articles/5

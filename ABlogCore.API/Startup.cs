@@ -30,12 +30,12 @@ namespace ABlogCore.API
 
             services.AddCors(opt =>
             {
-                opt.AddDefaultPolicy(x => { x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
+                opt.AddDefaultPolicy(x => { x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
             });
 
             services.AddDbContext<ABlogContext>(opt =>
             {
-                opt.UseSqlServer(Configuration["ConnectionString:DefaultSqlConnectionString"]);
+                opt.UseSqlServer(Configuration["ConnectionStrings:DefaultSqlConnectionString"]);
 
 
             });

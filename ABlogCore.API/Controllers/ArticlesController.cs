@@ -46,7 +46,7 @@ namespace ABlogCore.API.Controllers
                     ContentMain = x.ContentMain,
                     ContentSummary = x.ContentSummary,
                     Picture = x.Picture,
-                    PublishDate=x.PublishDate,
+                    PublishDate = x.PublishDate,
                     ViewCount = x.ViewCount,
                     CommentCount = x.Comments.Count,
                     Category = new CategoryResponse() { Id = x.Category.Id, Name = x.Category.Name }
@@ -70,16 +70,30 @@ namespace ABlogCore.API.Controllers
 
         // GET: api/Articles/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Article>> GetArticle(int id)
+        public IActionResult GetArticle(int id)
         {
-            var article = await _context.Articles.FindAsync(id);
+            var article = _context.Articles.Include(x => x.Category).Include(y => y.Comments).FirstOrDefault(z => z.Id == id);
 
             if (article == null)
             {
                 return NotFound();
             }
 
-            return article;
+            ArticleResponse articleResponse = new ArticleResponse()
+            {
+                Id = article.Id,
+                Title = article.Title,
+                ContentMain = article.ContentMain,
+                ContentSummary = article.ContentSummary,
+                Picture = article.Picture,
+                PublishDate = article.PublishDate,
+                ViewCount = article.ViewCount,
+                Category = new CategoryResponse() { Id = article.Category.Id, Name = article.Category.Name },
+                CommentCount = article.Comments.Count
+            };
+
+            return Ok(articleResponse);
+
         }
 
         // PUT: api/Articles/5

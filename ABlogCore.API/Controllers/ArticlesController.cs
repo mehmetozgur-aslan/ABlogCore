@@ -114,6 +114,25 @@ namespace ABlogCore.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("SearchArticles/{searchText}/{page}/{pageSize}")]
+        public IActionResult SearchArticles(string searchText, int page = 1, int pageSize = 1)
+        {
+            IQueryable<Article> query;
+
+            query = _context.Articles.Include(x => x.Category).Include(x => x.Comments).Where(z => z.Title.Contains(searchText)).OrderByDescending(x => x.PublishDate);
+
+            var queryResult = ArticlesPagination(query, page, pageSize);
+
+            var result = new
+            {
+                TotalCount = queryResult.Item2,
+                Articles = queryResult.Item1
+            };
+
+            return Ok(result);
+        }
+
         // PUT: api/Articles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

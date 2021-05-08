@@ -96,6 +96,24 @@ namespace ABlogCore.API.Controllers
 
         }
 
+        [HttpGet]
+        //wwww.localhost/api/articles/GetArticlesWithCategory/1/1/5
+        [Route("GetArticlesWithCategory/{categoryId}/{page}/{pageSize}")]
+        public IActionResult GetArticlesWithCategory(int categoryId, int page = 1, int pageSize = 5)
+        {
+            IQueryable<Article> query = _context.Articles.Include(x => x.Category).Include(x => x.Comments).Where(z => z.CategoryId == categoryId).OrderByDescending(x => x.PublishDate);
+
+            var queryResult = ArticlesPagination(query, page, pageSize);
+
+            var result = new
+            {
+                TotalCount = queryResult.Item2,
+                Articles = queryResult.Item1
+            };
+
+            return Ok(result);
+        }
+
         // PUT: api/Articles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -157,6 +175,26 @@ namespace ABlogCore.API.Controllers
         private bool ArticleExists(int id)
         {
             return _context.Articles.Any(e => e.Id == id);
+        }
+
+        public System.Tuple<IEnumerable<ArticleResponse>, int> ArticlesPagination(IQueryable<Article> query, int page, int pageSize)
+        {
+            int totalCount = query.Count();
+
+            var articlesResponse = query.Skip((pageSize * (page - 1))).Take(pageSize).ToList().Select(x => new ArticleResponse()
+            {
+                Id = x.Id,
+                Title = x.Title,
+                ContentMain = x.ContentMain,
+                ContentSummary = x.ContentSummary,
+                Picture = x.Picture,
+                ViewCount = x.ViewCount,
+                CommentCount = x.Comments.Count,
+                Category = new CategoryResponse() { Id = x.Category.Id, Name = x.Category.Name }
+
+            });
+
+            return new Tuple<IEnumerable<ArticleResponse>, int>(articlesResponse, totalCount);
         }
     }
 }

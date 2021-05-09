@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ABlogCore.API.Models;
 using ABlogCore.API.Responses;
+using System.Globalization;
 
 namespace ABlogCore.API.Controllers
 {
@@ -132,6 +133,54 @@ namespace ABlogCore.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet]
+        [Route("GetArticlesByMostView")]
+        public IActionResult GetArticlesByMostView()
+        {
+            var articles = _context.Articles.OrderByDescending(x => x.ViewCount).Take(5).Select(x => new ArticleResponse()
+            {
+                Title = x.Title,
+                Id = x.Id
+            });
+
+            return Ok(articles);
+        }
+
+        [HttpGet]
+        [Route("GetArticlesArchive")]
+        public IActionResult GetArticlesArchive()
+        {
+            var query = _context.Articles.GroupBy(x => new { x.PublishDate.Year, x.PublishDate.Month }).Select(y => new
+            {
+                year = y.Key.Year,
+                month = y.Key.Month,
+                count = y.Count(),
+                monthName = new DateTime(y.Key.Year, y.Key.Month, 1).ToString("MMMM", CultureInfo.CreateSpecificCulture("tr"))
+            });
+
+            return Ok(query);
+        }
+
+        [HttpGet]
+        [Route("GetArticleArchiveList/{year}/{month}/{page}/{pageSize}")]
+        public IActionResult GetArticleArchiveList(int year, int month, int page = 1, int pageSize = 5)
+        {
+            IQueryable<Article> query;
+            query = _context.Articles.Include(x => x.Category).Include(y => y.Comments).Where(z => z.PublishDate.Year == year && z.PublishDate.Month == month).OrderByDescending(f => f.PublishDate);
+
+            var queryResult = ArticlesPagination(query, page, pageSize);
+
+            var result = new
+            {
+                TotalCount = queryResult.Item2,
+                Articles = queryResult.Item1
+            };
+
+            return Ok(result);
+        }
+
+
 
         // PUT: api/Articles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

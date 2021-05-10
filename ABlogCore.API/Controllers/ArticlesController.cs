@@ -180,6 +180,16 @@ namespace ABlogCore.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("ArticleViewCountUp/{id}")]
+        public IActionResult ArticleViewCountUp(int id)
+        {
+            Article article = _context.Articles.Find(id);
+            article.ViewCount += 1;
+            _context.SaveChanges();
+            return Ok();
+        }
+
 
 
         // PUT: api/Articles/5

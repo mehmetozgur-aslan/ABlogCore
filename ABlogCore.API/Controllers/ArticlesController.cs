@@ -156,10 +156,10 @@ namespace ABlogCore.API.Controllers
                 year = y.Key.Year,
                 month = y.Key.Month,
                 count = y.Count(),
-                monthName = new DateTime(y.Key.Year, y.Key.Month, 1).ToString("MMMM", CultureInfo.CreateSpecificCulture("tr"))
+                monthName = new DateTime(y.Key.Year, y.Key.Month, 1).ToString("MMMM", new CultureInfo("tr-TR"))
             });
 
-            return Ok(query);
+            return Ok(query.ToList());
         }
 
         [HttpGet]
